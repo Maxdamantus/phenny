@@ -80,7 +80,7 @@ class Bot(asynchat.async_chat):
       if self.verbose: 
          message = 'Connecting to %s:%s...' % (host, port)
          print >> sys.stderr, message,
-      self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+      self.create_socket(socket.AF_INET6, socket.SOCK_STREAM)
       self.connect((host, port))
       try: asyncore.loop()
       except KeyboardInterrupt: 
