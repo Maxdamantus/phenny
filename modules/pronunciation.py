@@ -15,7 +15,7 @@ def pronounce(phenny, input):
 	try:
 		msg = []
 		for v in voices:
-			msg.append(v + ": /" + speak(v, stuff) + "/")
+			msg.append(v + ": [" + speak(v, stuff) + "]")
 		msg = ", ".join(msg)
 	except subprocess.CalledProcessError as e:
 		msg = "fail: " + e.output
