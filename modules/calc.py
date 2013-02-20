@@ -96,7 +96,7 @@ def py(phenny, input):
    uri = 'http://tumbolia.appspot.com/py/'
    answer = web.get(uri + web.urllib.quote(query))
    if answer: 
-      phenny.say(answer)
+      phenny.say("> " + answer)
    else: phenny.reply('Sorry, no result.')
 py.commands = ['py']
 
