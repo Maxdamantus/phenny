@@ -10,7 +10,7 @@ http://inamidst.com/phenny/
 import re
 import web
 
-uri = 'http://en.wiktionary.org/w/index.php?title=%s&printable=yes'
+uri = 'http://%s.wiktionary.org/w/index.php?title=%s&printable=yes'
 r_tag = re.compile(r'<[^>]+>')
 r_ul = re.compile(r'(?ims)<ul>.*?</ul>')
 
@@ -22,44 +22,35 @@ def text(html):
    text = text.replace('(transitive', '(trans.')
    return text
 
-def wiktionary(word): 
-   bytes = web.get(uri % web.urllib.quote(word.encode('utf-8')))
+def wiktionary(lang, word): 
+   bytes = web.get(uri % (lang, web.urllib.quote(word.encode('utf-8'))))
    bytes = r_ul.sub('', bytes)
 
    mode = None
    etymology = None
    definitions = {}
    for line in bytes.splitlines(): 
-      if 'id="Etymology"' in line: 
-         mode = 'etymology'
-      elif 'id="Noun"' in line: 
-         mode = 'noun'
-      elif 'id="Verb"' in line: 
-         mode = 'verb'
-      elif 'id="Adjective"' in line: 
-         mode = 'adjective'
-      elif 'id="Adverb"' in line: 
-         mode = 'adverb'
-      elif 'id="Interjection"' in line: 
-         mode = 'interjection'
-      elif 'id="Particle"' in line: 
-         mode = 'particle'
-      elif 'id="Preposition"' in line: 
-         mode = 'preposition'
-      elif 'id="' in line: 
-         mode = None
+      for part in parts:
+         if ('id="%s"' % part.capitalize()) in line:
+            mode = part
+            break
+      else:
+         if 'id="' in line: 
+            mode = None
 
-      elif (mode == 'etmyology') and ('<p>' in line): 
-         etymology = text(line)
-      elif (mode is not None) and ('<li>' in line): 
-         definitions.setdefault(mode, []).append(text(line))
+         elif (mode == 'etmyology') and ('<p>' in line): 
+            etymology = text(line)
+         elif (mode is not None) and ('<li>' in line): 
+            definitions.setdefault(mode, []).append(text(line))
 
       if '<hr' in line: 
          break
    return etymology, definitions
 
 parts = ('preposition', 'particle', 'noun', 'verb', 
-   'adjective', 'adverb', 'interjection')
+   'adjective', 'adverb', 'interjection', 'proverb',
+   'determiner', 'article', 'suffix', 'prefix',
+   'pronoun')
 
 def format(word, definitions, number=2): 
    result = '%s' % word.encode('utf-8')
@@ -75,7 +66,12 @@ def w(phenny, input):
    if not input.group(2):
       return phenny.reply("Nothing to define.")
    word = input.group(2)
-   etymology, definitions = wiktionary(word)
+   if word.startswith(':') and (' ' in word): 
+      a, b = word.split(' ', 1)
+      a = a.lstrip(':')
+      if a.isalpha(): 
+         language, word = a, b
+   etymology, definitions = wiktionary(language, word)
    if not definitions: 
       phenny.say("Couldn't get any definitions for %s." % word)
       return
