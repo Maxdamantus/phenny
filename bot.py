@@ -86,12 +86,12 @@ class Phenny(irc.Bot):
          # register documentation
          if not hasattr(func, 'name'): 
             func.name = func.__name__
-         if func.__doc__: 
+         for command in (func.commands if hasattr(func, 'commands') else []):
             if hasattr(func, 'example'): 
                example = func.example
                example = example.replace('$nickname', self.nick)
             else: example = None
-            self.doc[func.name] = (func.__doc__, example)
+            self.doc[command] = (func.__doc__ if hasattr(func, '__doc__') else command, example)
          self.commands[priority].setdefault(regexp, []).append(func)
 
       def sub(pattern, self=self): 

@@ -9,6 +9,7 @@ http://inamidst.com/phenny/
 
 import re
 import web
+import HTMLParser
 
 uri = 'http://%s.wiktionary.org/w/index.php?title=%s&printable=yes'
 r_tag = re.compile(r'<[^>]+>')
@@ -21,26 +22,41 @@ def text(html):
    text = text.replace('(intransitive', '(intr.')
    text = text.replace('(transitive', '(trans.')
    return text
+   return HTMLParser.HTMLParser().unescape(text)
 
-def wiktionary(lang, word): 
+anomalies = {
+  "h4": ["ru", "nl"],
+  "h2": ["hi"]
+}
+
+def wiktionary(lang, word, filter): 
    bytes = web.get(uri % (lang, web.urllib.quote(word.encode('utf-8'))))
    bytes = r_ul.sub('', bytes)
 
    mode = None
    etymology = None
    definitions = {}
+   head = "h3"
+   for h, langs in anomalies.items():
+      if lang in langs:
+         head = h
    for line in bytes.splitlines(): 
-      for part in parts:
-         if ('id="%s"' % part.capitalize()) in line:
-            mode = part
-            break
+      if line.endswith("</%s>" % head) and "id=\"" in line:
+         sub = line
+         if "</span>" in sub:
+            sub = sub.split("</span>")[0]
+         if ">" in sub:
+            sub = sub.split(">")[-1]
+         mode = sub.lower()
+         if filter and not (mode in filter):
+            mode = None
       else:
-         if 'id="' in line: 
+         if '</ol>' in line: 
             mode = None
 
          elif (mode == 'etmyology') and ('<p>' in line): 
             etymology = text(line)
-         elif (mode is not None) and ('<li>' in line): 
+         elif (mode is not None) and ('<li>' in line):
             definitions.setdefault(mode, []).append(text(line))
 
       if '<hr' in line: 
@@ -54,7 +70,7 @@ parts = ('preposition', 'particle', 'noun', 'verb',
 
 def format(word, definitions, number=2): 
    result = '%s' % word.encode('utf-8')
-   for part in parts: 
+   for part in definitions.keys(): 
       if definitions.has_key(part): 
          defs = definitions[part][:number]
          result += u' \u2014 '.encode('utf-8') + ('%s: ' % part)
@@ -66,12 +82,20 @@ def w(phenny, input):
    if not input.group(2):
       return phenny.reply("Nothing to define.")
    word = input.group(2)
+   filter = []
+   while word.startswith('#') and (' ' in word):
+      a, b = word.split(' ', 1)
+      a = a.lstrip('#')
+      if a.isalpha():
+         filter.append(a)
+         word = b
+   language = "en"
    if word.startswith(':') and (' ' in word): 
       a, b = word.split(' ', 1)
       a = a.lstrip(':')
       if a.isalpha(): 
          language, word = a, b
-   etymology, definitions = wiktionary(language, word)
+   etymology, definitions = wiktionary(language, word, filter)
    if not definitions: 
       phenny.say("Couldn't get any definitions for %s." % word)
       return
