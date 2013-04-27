@@ -26,7 +26,8 @@ def text(html):
 
 anomalies = {
   "h4": ["ru", "nl"],
-  "h2": ["hi"]
+  "h2": ["hi"],
+  "p": ["ko"]
 }
 
 def wiktionary(lang, word, filter): 
@@ -37,22 +38,27 @@ def wiktionary(lang, word, filter):
    etymology = None
    definitions = {}
    head = "h3"
+   listtype = None
    for h, langs in anomalies.items():
       if lang in langs:
          head = h
    for line in bytes.splitlines(): 
       if line.endswith("</%s>" % head) and "id=\"" in line:
-         sub = line
-         if "</span>" in sub:
-            sub = sub.split("</span>")[0]
-         if ">" in sub:
-            sub = sub.split(">")[-1]
+         sub = text(line)
+#         if "</span>" in sub:
+#            sub = sub.split("</span>")[0]
+#         if ">" in sub:
+#            sub = sub.split(">")[-1]
          mode = sub.lower()
          if filter and not (mode in filter):
             mode = None
       else:
-         if '</ol>' in line: 
+         if listtype != None and '</' + listtype + '>' in line: 
             mode = None
+         elif listtype == None:
+            for lt in ["ul", "ol"]:
+               if '<' + lt + '>' in line:
+                 listtype = lt
 
          elif (mode == 'etmyology') and ('<p>' in line): 
             etymology = text(line)
