@@ -242,14 +242,12 @@ def f_weather(self, origin, match, args):
       elif (degrees > 292.5) and (degrees <= 337.5): 
          degrees = u'\u2196'.encode('utf-8')
 
-      if not icao_code.startswith('EN') and not icao_code.startswith('ED'): 
-         wind = '%s %skt (%s)' % (description, speed, degrees)
-      elif icao_code.startswith('ED'): 
-         kmh = int(round(speed * 1.852, 0))
-         wind = '%s %skm/h (%skt) (%s)' % (description, kmh, speed, degrees)
-      elif icao_code.startswith('EN'): 
+      if icao_code.startswith('EN'): 
          ms = int(round(speed * 0.514444444, 0))
          wind = '%s %sm/s (%skt) (%s)' % (description, ms, speed, degrees)
+      else:
+         kmh = int(round(speed * 1.852, 0))
+         wind = '%s %skm/h (%skt) (%s)' % (description, kmh, speed, degrees)
    else: wind = '(wind unknown)'
 
    if visibility: 
