@@ -10,7 +10,23 @@ http://inamidst.com/phenny/
 import re, urllib, gzip, StringIO
 import web
 
-wikiuri = 'http://%s.wikipedia.org/wiki/%s'
+extrawikis = {
+   "r": "http://rationalwiki.org/wiki/%(term)s",
+   "c": "http://www.conservapedia.com/%(term)s",
+   "m": ["en", "http://%(lang)s.metapedia.org/wiki/%(term)s"],
+   "s": "http://www.scholarpedia.org/article/%(term)s"
+}
+
+def wikiuri(language, term):
+   if '!' in language:
+      (w, wl) = language.split('!', 1)
+      ew = extrawikis[w]
+      if type(ew) != str:
+         if not wl:
+            wl = ew[0]
+         ew = ew[1]
+      return ew % { "term": term, "lang": wl }
+   return 'http://%s.wikipedia.org/wiki/%s' % (language, term)
 # wikisearch = 'http://%s.wikipedia.org/wiki/Special:Search?' \
 #                     + 'search=%s&fulltext=Search'
 
@@ -60,15 +76,14 @@ def search(term):
    else: return term
 
 def wikipedia(term, language='en', last=False): 
-   global wikiuri
    if not '%' in term: 
       if isinstance(term, unicode): 
          t = term.encode('utf-8')
       else: t = term
       q = urllib.quote(t)
-      u = wikiuri % (language, q)
-      bytes = web.get(u)
-   else: bytes = web.get(wikiuri % (language, term))
+   else:
+      q = term
+   bytes = web.get(wikiuri(language, q))
 
    if bytes.startswith('\x1f\x8b\x08\x00\x00\x00\x00\x00'): 
       f = StringIO.StringIO(bytes)
@@ -95,6 +110,7 @@ def wikipedia(term, language='en', last=False):
       return None
 
    # Pre-process
+   print(paragraphs)
    paragraphs = [para for para in paragraphs 
                  if (para and 'technical limitations' not in para 
                           and 'window.showTocToggle' not in para 
@@ -106,6 +122,7 @@ def wikipedia(term, language='en', last=False):
                           and not '(images and media)' in para
                           and not 'This article contains a' in para 
                           and not 'id="coordinates"' in para
+                          and not '<li>' in para
                           and not 'class="thumb' in para]
                           # and not 'style="display:none"' in para]
 
@@ -118,15 +135,21 @@ def wikipedia(term, language='en', last=False):
    paragraphs = [para for para in paragraphs if 
                  (para and not (para.endswith(':') and len(para) < 150))]
 
-   para = text(paragraphs[0])
-   m = r_sentence.match(para)
+   minlength = 150
+   sentence = ""
+   for paragraph in paragraphs:
+      if len(sentence) > minlength:
+         break
+      para = text(paragraph)
+      m = r_sentence.match(para)
 
-   if not m: 
-      if not last: 
-         term = search(term)
-         return wikipedia(term, language=language, last=True)
-      return None
-   sentence = m.group(0)
+      if not m: 
+         if not last: 
+            term = search(term)
+            return wikipedia(term, language=language, last=True)
+         return None
+      sentence = sentence + " " + m.group(0)
+      sentence = sentence.strip()
 
    maxlength = 275
    if len(sentence) > maxlength: 
@@ -145,9 +168,8 @@ def wikipedia(term, language='en', last=False):
 
    sentence = '"' + sentence.replace('"', "'") + '"'
    sentence = sentence.decode('utf-8').encode('utf-8')
-   wikiuri = wikiuri.decode('utf-8').encode('utf-8')
    term = term.decode('utf-8').encode('utf-8')
-   return sentence + ' - ' + (wikiuri % (language, term))
+   return sentence + ' - ' + (wikiuri(language, term))
 
 def wik(phenny, input): 
    origterm = input.groups()[1]
@@ -160,14 +182,14 @@ def wik(phenny, input):
    if term.startswith(':') and (' ' in term): 
       a, b = term.split(' ', 1)
       a = a.lstrip(':')
-      if a.isalpha(): 
+      if a.replace("!", "").isalpha(): 
          language, term = a, b
    #term = term[0].upper() + term[1:]
    term = term.replace(' ', '_')
 
    try: result = wikipedia(term, language)
    except IOError: 
-      args = (language, wikiuri % (language, term))
+      args = (language, wikiuri(language, term))
       error = "Can't connect to %s.wikipedia.org (%s)" % args
       return phenny.say(error)
 

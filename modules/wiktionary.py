@@ -50,6 +50,7 @@ def wiktionary(lang, word, filter):
 #         if ">" in sub:
 #            sub = sub.split(">")[-1]
          mode = sub.lower()
+         print("mode = %s" % mode)
          if filter and not (mode in filter):
             mode = None
       else:
@@ -80,9 +81,9 @@ def format(word, definitions, number=2):
       if definitions.has_key(part): 
          defs = definitions[part][:number]
          result += u' \u2014 '.encode('utf-8') + ('%s: ' % part)
-         n = ['%s. %s' % (i + 1, e.strip(' .')) for i, e in enumerate(defs)]
+         n = ['%s. %s' % (i + 1, e.strip(' ')) for i, e in enumerate(defs)]
          result += ', '.join(n)
-   return result.strip(' .,')
+   return result.strip(' ,')
 
 def w(phenny, input): 
    if not input.group(2):
