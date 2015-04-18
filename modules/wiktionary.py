@@ -10,6 +10,7 @@ http://inamidst.com/phenny/
 import re
 import web
 import HTMLParser
+import random
 
 uri = 'http://%s.wiktionary.org/w/index.php?title=%s&printable=yes'
 r_tag = re.compile(r'<[^>]+>')
@@ -68,6 +69,8 @@ def wiktionary(lang, word, filter):
 
       if '<hr' in line: 
          break
+      for _, d in definitions.items():
+         random.shuffle(d)
    return etymology, definitions
 
 parts = ('preposition', 'particle', 'noun', 'verb', 

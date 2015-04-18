@@ -244,10 +244,10 @@ def f_weather(self, origin, match, args):
 
       if icao_code.startswith('EN'): 
          ms = int(round(speed * 0.514444444, 0))
-         wind = '%s %sm/s (%skt) (%s)' % (description, ms, speed, degrees)
+         wind = '%s %s m/s (%s kt) (%s)' % (description, ms, speed, degrees)
       else:
          kmh = int(round(speed * 1.852, 0))
-         wind = '%s %skm/h (%skt) (%s)' % (description, kmh, speed, degrees)
+         wind = '%s %s km/h (%s kt) (%s)' % (description, kmh, speed, degrees)
    else: wind = '(wind unknown)'
 
    if visibility: 
@@ -298,7 +298,7 @@ def f_weather(self, origin, match, args):
       if pressure.startswith('Q'): 
          pressure = pressure.lstrip('Q')
          if pressure != 'NIL': 
-            pressure = str(int(pressure)) + 'mb'
+            pressure = str(int(pressure)) + ' mb'
          else: pressure = '?mb'
       elif pressure.startswith('A'): 
          pressure = pressure.lstrip('A')
@@ -310,10 +310,10 @@ def f_weather(self, origin, match, args):
 
          if isinstance(temp, int): 
             f = round((temp * 1.8) + 32, 2)
-            temp = u'%s\u2109 (%s\u2103)'.encode('utf-8') % (f, temp)
+            temp = u'%s \u2109 (%s \u2103)'.encode('utf-8') % (f, temp)
    else: pressure = '?mb'
    if isinstance(temp, int): 
-      temp = u'%s\u2103'.encode('utf-8') % temp
+      temp = u'%s \u2103'.encode('utf-8') % temp
 
    if cond: 
       conds = cond

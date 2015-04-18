@@ -55,8 +55,11 @@ class Bot(asynchat.async_chat):
       try: 
          if text is not None: 
             # 510 because CR and LF count too, as nyuszika7h points out
-            self.push((' '.join(args) + ' :' + text)[:510] + '\r\n')
-         else: self.push(' '.join(args)[:510] + '\r\n')
+            out = (' '.join(args) + ' :' + text)[:510]
+         else:
+            out = ' '.join(args)[:510]
+         print("<< " + out)
+         self.push(out + "\r\n")
       except IndexError: 
          pass
 
@@ -80,7 +83,7 @@ class Bot(asynchat.async_chat):
       if self.verbose: 
          message = 'Connecting to %s:%s...' % (host, port)
          print >> sys.stderr, message,
-      self.create_socket(socket.AF_INET6, socket.SOCK_STREAM)
+      self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
       self.connect((host, port))
       try: asyncore.loop()
       except KeyboardInterrupt: 
@@ -108,6 +111,7 @@ class Bot(asynchat.async_chat):
       self.buffer = ''
 
       # print 'GOT:', repr(line)
+      print(">> " + line)
       if line.startswith(':'): 
          source, line = line[1:].split(' ', 1)
       else: source = None

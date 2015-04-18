@@ -58,8 +58,8 @@ def startup(phenny, input):
    if hasattr(phenny.config, 'serverpass'): 
       phenny.write(('PASS', phenny.config.serverpass))
 
-   if hasattr(phenny.config, 'password'): 
-      phenny.msg('NickServ', 'IDENTIFY %s' % phenny.config.password)
+   if hasattr(phenny.config, 'nspassword'): 
+      phenny.msg('NickServ', 'IDENTIFY %s' % phenny.config.nspassword)
       time.sleep(5)
 
    # Cf. http://swhack.com/logs/2005-12-05#T19-32-36

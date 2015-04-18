@@ -31,9 +31,15 @@ def translate(text, input='auto', output='en'):
    result = opener.open('http://translate.google.com/translate_a/t?' +
       ('client=t&hl=en&sl=%s&tl=%s&multires=1' % (input, output)) + 
       ('&otf=1&ssel=0&tsel=0&uptl=en&sc=1&text=%s' % text)).read()
+   print("result = %r" % (result,))
 
+   # wtf
    while ',,' in result: 
       result = result.replace(',,', ',null,')
+   while '[,' in result: 
+      result = result.replace('[,', '[')
+   while ',]' in result: 
+      result = result.replace('[,', ']')
    data = json.loads(result)
 
    if raw: 

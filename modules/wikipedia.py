@@ -13,7 +13,7 @@ import web
 extrawikis = {
    "r": "http://rationalwiki.org/wiki/%(term)s",
    "c": "http://www.conservapedia.com/%(term)s",
-   "m": ["en", "http://%(lang)s.metapedia.org/wiki/%(term)s"],
+#   "m": ["en", "http://%(lang)s.metapedia.org/wiki/%(term)s"],
    "s": "http://www.scholarpedia.org/article/%(term)s"
 }
 
